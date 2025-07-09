@@ -1,0 +1,22 @@
+{
+  "name": "ais-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "mapbox-gl": "^2.14.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "typescript": "^4.5.2",
+    "vite": "^4.0.0"
+  }
+}
