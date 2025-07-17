@@ -46,7 +46,7 @@
           <div class="filter-row">
             <div>
               <label for="country-filter">Country:</label>
-              <select id="country-filter">
+              <select id="country-filter" multiple>
                 <option value="">All Countries</option>
 
               </select>
@@ -56,11 +56,17 @@
           <div class="filter-row">
             <div>
               <label for="type-filter">Ship Type:</label>
-              <select id="type-filter">
+              <select id="type-filter"  multiple>
                 <option value="">All Types</option>
 
               </select>
             </div>
+          </div>
+
+          <div>
+            <button id="clear-map" class="clear-map-button">
+              <i class="fas fa-times"></i> Clear Map
+            </button>            
           </div>
           
           <div class="vessel-count">
@@ -325,6 +331,8 @@
         typeFilter.appendChild(option);
       });
     }
+
+    let countryColorMap = {};
     
     // Create charts
     function createCharts() {
@@ -385,6 +393,19 @@
           }
         }
       });
+
+      const countryLabels = Object.keys(countryCounts);
+      const chartColors = [
+        '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0',
+        '#9966ff', '#ff9f40', '#8ac249', '#d45087',
+        '#f95d6a', '#2f4b7c', '#665191', '#a05195'
+      ];
+
+      countryColorMap = {};
+      countryLabels.forEach((country, i) => {
+        countryColorMap[country] = chartColors[i % chartColors.length];
+      });
+
     }
     
     // Update vessel counts
@@ -404,12 +425,20 @@
       activeFilters.textContent = `${activeFilterCount} active`;
     }
     
-    // Check if vessel matches filters
-    function matchesFilters(vessel) {
-      if (countryFilter.value && vessel.country !== countryFilter.value) return false;
-      if (typeFilter.value && vessel.type !== typeFilter.value) return false;
-      return true;
+    function getSelectedOptions(selectEl) {
+      return Array.from(selectEl.selectedOptions).map(opt => opt.value);
     }
+
+    function matchesFilters(vessel) {
+      const selectedCountries = getSelectedOptions(countryFilter);
+      const selectedTypes = getSelectedOptions(typeFilter);
+      
+      const countryMatch = selectedCountries.length === 0 || selectedCountries.includes(vessel.country);
+      const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(vessel.type);
+      
+      return countryMatch && typeMatch;
+    }
+
 
     // Render vessel list with search and filters
     function renderVesselList() {
@@ -445,7 +474,7 @@
           </div>
         `;
         
-        vesselCard.addEventListener('click', () => selectVessel(mmsi));
+        vesselCard.addEventListener('click', () => toggleVessel(mmsi));
         vesselList.appendChild(vesselCard);
       });
       
@@ -499,17 +528,53 @@
       }
     }
 
+    let visibleVesselSet = new Set();
+
+    function toggleVessel(mmsi) {
+      if (visibleVesselSet.has(mmsi)) {
+        removeVesselFromMap(mmsi);
+        visibleVesselSet.delete(mmsi);
+        if (selectedVessel === mmsi) selectedVessel = null;
+      } else {
+        visualizeVesselPath(mmsi);
+        visibleVesselSet.add(mmsi);
+        selectedVessel = mmsi;
+      }
+
+      renderVesselList(); // Update UI highlighting
+      updateVesselStats(mmsi); // Still update stats
+    }
+
+
+    function removeVesselFromMap(mmsi) {
+      const ids = ['vessel-path', 'start-point', 'end-point', 'vessel-points', 'vessel-points-highlight'];
+      ids.forEach(id => {
+        const layerId = `${id}-${mmsi}`;
+        const sourceId = `${id}-${mmsi}`;
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      });
+    }
+
+    // clear button
+    document.getElementById('clear-map').addEventListener('click', () => {
+      for (const mmsi of visibleVesselSet) {
+        removeVesselFromMap(mmsi);
+      }
+      visibleVesselSet.clear();
+      renderVesselList();
+    });
+
     // Visualize vessel path on the map
     function visualizeVesselPath(mmsi) {
+      const pathId = `vessel-path-${mmsi}`;
+      const startId = `start-point-${mmsi}`;
+      const endId = `end-point-${mmsi}`;
+      const pointsId = `vessel-points-${mmsi}`;
+      const highlightId = `vessel-points-highlight-${mmsi}`;
+
       // Clear existing layers and sources
-      const layersToRemove = [
-        'vessel-path', 'start-point', 'end-point', 'vessel-points',
-        'vessel-path-outline', 'vessel-points-highlight'
-      ];
-      
-      layersToRemove.forEach(layer => {
-        if (map.getLayer(layer)) map.removeLayer(layer);
-      });
+      removeVesselFromMap(mmsi); 
       
       const sourcesToRemove = [
         'vessel-path', 'start-point', 'end-point', 'vessel-points'
@@ -568,10 +633,25 @@
       };
       
       // Add the path to the map
-      map.addSource('vessel-path', {
+      map.addSource(pathId, {
         type: 'geojson',
         data: pathData
       });
+
+      const pathColor = countryColorMap[vessel.country] || '#00b4d8';  // fallback
+
+      map.addLayer({
+        id: pathId,
+        type: 'line',
+        source: pathId,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': pathColor,
+          'line-width': 3,
+          'line-opacity': 0.8
+        }
+      });
+
       /*
       // Add outline for better visibility
       map.addLayer({
@@ -591,15 +671,15 @@
       */
       
       // Add start point
-      map.addSource('start-point', {
+      map.addSource(startId, {
         type: 'geojson',
         data: startPoint
       });
       
       map.addLayer({
-        id: 'start-point',
+        id: startId,
         type: 'circle',
-        source: 'start-point',
+        source: startId,
         paint: {
           'circle-radius': 8,
           'circle-color': '#9c27b0',
@@ -609,15 +689,15 @@
       });
       
       // Add end point
-      map.addSource('end-point', {
+      map.addSource(endId, {
         type: 'geojson',
         data: endPoint
       });
       
       map.addLayer({
-        id: 'end-point',
+        id: endId,
         type: 'circle',
-        source: 'end-point',
+        source: endId,
         paint: {
           'circle-radius': 8,
           'circle-color': '#4caf50',
@@ -627,16 +707,16 @@
       });
       
       // Add all points
-      map.addSource('vessel-points', {
+      map.addSource(pointsId, {
         type: 'geojson',
         data: pointsData
       });
       
       // Base points
       map.addLayer({
-        id: 'vessel-points',
+        id: pointsId,
         type: 'circle',
-        source: 'vessel-points',
+        source: pointsId,
         paint: {
           'circle-radius': 3,
           'circle-color': '#00b4d8',
@@ -646,9 +726,9 @@
       
       // Highlight points
       map.addLayer({
-        id: 'vessel-points-highlight',
+        id: highlightId,
         type: 'circle',
-        source: 'vessel-points',
+        source: pointsId,
         paint: {
           'circle-radius': 4,
           'circle-color': '#ffffff',
@@ -657,7 +737,7 @@
       });
       
       // Add popups to points
-      map.on('click', 'vessel-points', (e) => {
+      map.on('click', pointsId, (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
         const timestamp = e.features[0].properties.timestamp;
         const sog = e.features[0].properties.sog;
@@ -678,11 +758,11 @@
       });
       
       // Change cursor on hover
-      map.on('mouseenter', 'vessel-points', () => {
+      map.on('mouseenter', pointsId, () => {
         map.getCanvas().style.cursor = 'pointer';
       });
       
-      map.on('mouseleave', 'vessel-points', () => {
+      map.on('mouseleave', pointsId, () => {
         map.getCanvas().style.cursor = '';
       });
       
@@ -778,20 +858,20 @@
     vesselSearch.addEventListener('input', renderVesselList);
     
     // Handle filter changes
-    countryFilter.addEventListener('change', function() {
-      renderVesselList();
-      updateVesselCounts();
+    [countryFilter, typeFilter].forEach(filter => {
+      filter.addEventListener('change', () => {
+        renderVesselList();
+        updateVesselCounts();
+      });
     });
-    
-    typeFilter.addEventListener('change', function() {
-      renderVesselList();
-      updateVesselCounts();
-    });
+
     
     // Handle reset filters
     resetFilters.addEventListener('click', function() {
-      countryFilter.value = '';
-      typeFilter.value = '';
+      [countryFilter, typeFilter].forEach(select => {
+        Array.from(select.options).forEach(opt => opt.selected = false);
+      });
+
       renderVesselList();
       updateVesselCounts();
     });

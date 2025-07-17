@@ -77,8 +77,6 @@ def csv_to_geojson(csv_path, geojson_path):
     print(f"Converted {csv_path.name} to {geojson_path.name} ({len(features)} features)")
 
 
-from pathlib import Path
-
 def process_all_csvs(input_folder, output_folder):
     input_path = Path(input_folder)
     output_path = Path(output_folder)

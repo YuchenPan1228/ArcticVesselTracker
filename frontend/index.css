@@ -406,3 +406,14 @@
   .reset-filters:hover {
     text-decoration: underline;
   }
+
+  .clear-map-button {
+    margin-top: 10px;
+    background-color: #d45087;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
