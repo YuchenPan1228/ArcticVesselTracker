@@ -66,7 +66,10 @@
           <div>
             <button id="clear-map" class="clear-map-button">
               <i class="fas fa-times"></i> Clear Map
-            </button>            
+            </button>  
+            <button id="show-all" class="show-all-button">
+              <i class="fas fa-eye"></i> Show All Vessels
+            </button>                      
           </div>
           
           <div class="vessel-count">
@@ -565,8 +568,21 @@
       renderVesselList();
     });
 
+    // Show all button
+    document.getElementById('show-all').addEventListener('click', () => {
+      visibleVesselSet.clear();
+      Object.entries(vesselData).forEach(([mmsi, vessel]) => {
+        if (matchesFilters(vessel)) {
+          visualizeVesselPath(mmsi, false); // disable flyTo
+          visibleVesselSet.add(mmsi);
+        }
+      });
+    });
+
+
+
     // Visualize vessel path on the map
-    function visualizeVesselPath(mmsi) {
+    function visualizeVesselPath(mmsi, flyTo = true) {
       const pathId = `vessel-path-${mmsi}`;
       const startId = `start-point-${mmsi}`;
       const endId = `end-point-${mmsi}`;
@@ -638,37 +654,6 @@
         data: pathData
       });
 
-      const pathColor = countryColorMap[vessel.country] || '#00b4d8';  // fallback
-
-      map.addLayer({
-        id: pathId,
-        type: 'line',
-        source: pathId,
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: {
-          'line-color': pathColor,
-          'line-width': 3,
-          'line-opacity': 0.8
-        }
-      });
-
-      /*
-      // Add outline for better visibility
-      map.addLayer({
-        id: 'vessel-path-outline',
-        type: 'line',
-        source: 'vessel-path',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#0a192f',
-          'line-width': 5,
-          'line-opacity': 0.8
-        }
-      });
-      */
       
       // Add start point
       map.addSource(startId, {
@@ -770,18 +755,12 @@
       const bounds = new mapboxgl.LngLatBounds();
       vessel.coordinates.forEach(coord => bounds.extend(coord));
       
-      // Add some padding to ensure all points are visible
-      const padding = {
-        top: 100,
-        bottom: 100,
-        left: 100,
-        right: 100
-      };
-      
-      map.fitBounds(bounds, {
-        padding: padding,
-        duration: 2000
-      });
+      if (flyTo) {
+        map.fitBounds(bounds, {
+          padding: 100,
+          duration: 2000
+        });
+      }
     }
 
     // Fetch GeoJSON from backend API
