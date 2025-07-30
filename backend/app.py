@@ -21,7 +21,7 @@ def get_vessels():
     except ValueError:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
 
-    all_features = []
+    vessel_tracks = {}  
     current = start
     while current <= end:
         filename = f"{current.strftime('%Y-%m-%d')}.geojson"
@@ -29,13 +29,22 @@ def get_vessels():
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if data.get("features"):
-                    all_features.extend(data["features"])
+                for feature in data.get("features", []):
+                    vessel_id = feature["properties"].get("mmsi") 
+                    if vessel_id:
+                        vessel_tracks.setdefault(vessel_id, []).append(feature)
         current += timedelta(days=1)
+
+    # Remove vessels with only 1 point
+    filtered_features = [
+        feature
+        for features in vessel_tracks.values() if len(features) > 1
+        for feature in features
+    ]
 
     return jsonify({
         "type": "FeatureCollection",
-        "features": all_features
+        "features": filtered_features
     })
 
 
