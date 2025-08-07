@@ -409,6 +409,7 @@
         countryColorMap[country] = chartColors[i % chartColors.length];
       });
 
+      renderVesselList();
     }
     
     // Update vessel counts
@@ -457,7 +458,9 @@
         if (!vessel.name.toLowerCase().includes(searchTerm)) return;
         
         vesselCount++;
+        const vesselColor = countryColorMap[vessel.country] || '#888';
         const vesselCard = document.createElement('div');
+
         vesselCard.className = 'vessel-card';
         if (selectedVessel === mmsi) {
           vesselCard.classList.add('selected');
@@ -602,6 +605,8 @@
       
       const vessel = vesselData[mmsi];
       if (!vessel || vessel.coordinates.length === 0) return;
+
+      const vesselColor = countryColorMap[vessel.country] || '#888';
       
       // Create line path for the vessel
       const pathData = {
@@ -704,7 +709,7 @@
         source: pointsId,
         paint: {
           'circle-radius': 3,
-          'circle-color': '#00b4d8',
+          'circle-color': vesselColor,
           'circle-opacity': 0.7
         }
       });
@@ -716,7 +721,7 @@
         source: pointsId,
         paint: {
           'circle-radius': 4,
-          'circle-color': '#ffffff',
+          'circle-color': vesselColor,
           'circle-opacity': 0.9
         }
       });
