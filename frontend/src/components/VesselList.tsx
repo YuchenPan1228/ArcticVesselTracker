@@ -4,14 +4,12 @@ import { Vessel } from '../types';
 interface VesselListProps {
   vessels: Record<string, Vessel>;
   selectedVessel: string | null;
-  countryColorMap: Record<string, string>;
   onVesselSelect: (mmsi: string) => void;
 }
 
 const VesselList: React.FC<VesselListProps> = ({ 
   vessels, 
   selectedVessel, 
-  countryColorMap,
   onVesselSelect 
 }) => {
   const vesselArray = Object.values(vessels);

@@ -50,8 +50,6 @@ const CountryChart: React.FC<CountryChartProps> = ({ chartData }) => {
           }
         },
         animation: {
-          animateRotate: true,
-          animateScale: true,
           duration: 2000
         }
       }

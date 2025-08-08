@@ -82,44 +82,44 @@ export const addVesselToMap = (
   
   // Create line path for the vessel
   const pathData = {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'LineString',
+      type: 'LineString' as const,
       coordinates: vessel.coordinates
     }
   };
   
   // Create start and end markers
   const startPoint = {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'Point',
+      type: 'Point' as const,
       coordinates: vessel.coordinates[0]
     }
   };
   
   const endPoint = {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'Point',
+      type: 'Point' as const,
       coordinates: vessel.coordinates[vessel.coordinates.length - 1]
     }
   };
   
   // Create point collection for all positions
   const pointsData = {
-    type: 'FeatureCollection',
+    type: 'FeatureCollection' as const,
     features: vessel.coordinates.map((coord, index) => ({
-      type: 'Feature',
+      type: 'Feature' as const,
       properties: {
         timestamp: vessel.timestamps[index],
         sog: vessel.sog[index] || 0
       },
       geometry: {
-        type: 'Point',
+        type: 'Point' as const,
         coordinates: coord
       }
     }))
@@ -212,9 +212,11 @@ export const addVesselToMap = (
   map.on('click', pointsId, (e) => {
     if (!e.features || e.features.length === 0) return;
     
-    const coordinates = e.features[0].geometry.coordinates.slice() as [number, number];
-    const timestamp = e.features[0].properties?.timestamp;
-    const sog = e.features[0].properties?.sog;
+    const feature = e.features[0];
+    const geometry = feature.geometry as GeoJSON.Point;
+    const coordinates = [...geometry.coordinates] as [number, number];
+    const timestamp = feature.properties?.timestamp;
+    const sog = feature.properties?.sog;
     
     // Ensure the point is visible
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {

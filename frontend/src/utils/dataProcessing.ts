@@ -1,4 +1,4 @@
-import { GeoJSONResponse, VesselData, Vessel, GeoJSONFeature } from '../types';
+import { GeoJSONResponse, VesselData, Vessel } from '../types';
 
 /**
  * Process GeoJSON data into structured vessel data
@@ -163,10 +163,10 @@ export const countVesselsByCountry = (vesselData: VesselData): Record<string, nu
  */
 export const createVesselPathGeoJSON = (vessel: Vessel) => {
   return {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'LineString',
+      type: 'LineString' as const,
       coordinates: vessel.coordinates
     }
   };
@@ -179,15 +179,15 @@ export const createVesselPathGeoJSON = (vessel: Vessel) => {
  */
 export const createVesselPointsGeoJSON = (vessel: Vessel) => {
   return {
-    type: 'FeatureCollection',
-    features: vessel.points.map((point, index) => ({
-      type: 'Feature',
+    type: 'FeatureCollection' as const,
+    features: vessel.points.map(point => ({
+      type: 'Feature' as const,
       properties: {
         timestamp: point.timestamp,
         sog: point.sog
       },
       geometry: {
-        type: 'Point',
+        type: 'Point' as const,
         coordinates: point.coordinates
       }
     }))

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import MapLegend from './components/MapLegend';
@@ -9,7 +9,6 @@ import { useVesselFilters } from './hooks/useVesselFilters';
 import { useMapbox } from './hooks/useMapbox';
 import { useChartData } from './hooks/useChartData';
 import './styles/global.css';
-import { Vessel } from './types';
 
 const App: React.FC = () => {
   // Load vessel data
@@ -37,11 +36,9 @@ const App: React.FC = () => {
   
   // Map controls
   const {
-    mapContainer,
-    visibleVessels,
-    selectedVessel,
     showVessel,
     hideVessel,
+    selectedVessel,
     selectVessel,
     clearAllVessels,
     showAllVessels

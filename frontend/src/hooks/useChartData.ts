@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { VesselData } from '../types';
 import { countVesselsByCountry } from '../utils/dataProcessing';
-import { CHART_COLORS, generateCountryColorMap } from '../utils/mapUtils';
+import { generateCountryColorMap } from '../utils/mapUtils';
 
 interface UseChartDataReturn {
   countryChartData: {

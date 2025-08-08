@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { fetchVesselData } from '../utils/api';
 import { processVesselData, getUniqueCountries, getUniqueShipTypes } from '../utils/dataProcessing';
 import { VesselData, GeoJSONResponse } from '../types';

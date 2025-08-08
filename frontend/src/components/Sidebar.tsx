@@ -1,5 +1,5 @@
 import React from 'react';
-import { Vessel, VesselData } from '../types';
+import { VesselData } from '../types';
 import DateRangeSelector from './DateRangeSelector';
 import VesselFilters from './VesselFilters';
 import VesselSearch from './VesselSearch';
@@ -102,7 +102,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         <VesselList 
           vessels={filteredVesselData}
           selectedVessel={selectedVessel}
-          countryColorMap={countryColorMap}
           onVesselSelect={onVesselSelect}
         />
         
